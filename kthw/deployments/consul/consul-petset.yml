@@ -1,0 +1,90 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: consul
+  labels:
+    app: consul
+spec:
+  ports:
+    - name: http
+      port: 8500
+    - name: rpc
+      port: 8400
+    - name: serflan
+      port: 8301
+    - name: serfwan
+      port: 8302
+    - name: server
+      port: 8300
+    - name: consuldns
+      port: 8600
+  clusterIP: None
+  selector:
+    app: consul
+---
+apiVersion: "apps/v1alpha1"
+kind: PetSet
+metadata:
+  name: consul
+spec:
+  serviceName: "consul"
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: consul
+      annotations:
+        pod.alpha.kubernetes.io/initialized: "true"
+    spec:
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: consul
+        imagePullPolicy: Always
+        image: consul
+        args:
+        - "agent"
+        - "-server"
+        - "-client"
+        - "0.0.0.0"
+        - "-recursor"
+        - "8.8.8.8"
+        - "-bootstrap-expect"
+        - "3"
+        - "-retry-join"
+        - "consul"
+        - "-ui"
+        ports:
+        - containerPort: 8500
+          name: ui-port
+        - containerPort: 8400
+          name: alt-port
+        - containerPort: 53
+          name: udp-port
+        - containerPort: 443
+          name: https-port
+        - containerPort: 8080
+          name: http-port
+        - containerPort: 8301
+          name: serflan
+        - containerPort: 8302
+          name: serfwan
+        - containerPort: 8600
+          name: consuldns
+        - containerPort: 8300
+          name: server
+        volumeMounts:
+        - name: ca-certificates
+          mountPath: /etc/ssl/certs
+        - name: consul-data
+          mountPath: /data
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      volumes:
+      - name: consul-data
+        emptyDir: {}
+      - name: ca-certificates
+        hostPath:
+          path: /usr/share/ca-certificates/
