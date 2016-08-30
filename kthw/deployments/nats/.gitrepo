@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/pinterb/kubernetes-nats-cluster
+	branch = master
+	commit = 799fde45c35daa426851f289ca640397d6b52eed
+	parent = 7420d567d747ed389a2b4889cd51b0f58f6e54ad
+	cmdver = 0.3.0
