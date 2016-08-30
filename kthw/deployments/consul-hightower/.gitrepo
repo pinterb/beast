@@ -1,0 +1,11 @@
+; DO NOT EDIT (unless you know what you are doing)
+;
+; This subdirectory is a git "subrepo", and this file is maintained by the
+; git-subrepo command. See https://github.com/git-commands/git-subrepo#readme
+;
+[subrepo]
+	remote = https://github.com/pinterb/consul-on-kubernetes
+	branch = master
+	commit = 46cec2186045a459834c4fc44b2cb70fb5e6e119
+	parent = 5e16fad098241bdeb4f6c322f51ae68afbc491eb
+	cmdver = 0.3.0
