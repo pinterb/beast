@@ -13,6 +13,9 @@ readonly PROJECT_ROOT=$(readlink -f $(git rev-parse --show-cdup))
 # pull in utils
 [[ -f "$PROJECT_ROOT/kthw/utils.sh" ]] && source "$PROJECT_ROOT/kthw/utils.sh"
 
+# pull in kubectl utils
+[[ -f "$PROJECT_ROOT/kthw/kubectl-utils.sh" ]] && source "$PROJECT_ROOT/kthw/kubectl-utils.sh"
+
 # pull in gcloud utils
 [[ -f "$PROGDIR/gcloud-utils.sh" ]] && source "$PROGDIR/gcloud-utils.sh"
 
