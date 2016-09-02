@@ -13,31 +13,44 @@ readonly PROJECT_ROOT=$(readlink -f $(git rev-parse --show-cdup))
 # pull in utils
 [[ -f "$PROJECT_ROOT/kthw/utils.sh" ]] && source "$PROJECT_ROOT/kthw/utils.sh"
 
-# pull in gcloud utils
-[[ -f "$PROGDIR/gcloud-utils.sh" ]] && source "$PROGDIR/gcloud-utils.sh"
+# pull in kubectl utils
+[[ -f "$PROJECT_ROOT/kthw/kubectl-utils.sh" ]] && source "$PROJECT_ROOT/kthw/kubectl-utils.sh"
 
-# Defaults for cli arguments
-DEFAULT_ZONE=${GKE_ZONE:-'us-central1-c'}
-DEFAULT_CLUSTER_NAME=${GKE_CLUSTER_NAME:-'example'}
+# pull in aws utils
+[[ -f "$PROGDIR/aws-utils.sh" ]] && source "$PROGDIR/aws-utils.sh"
+
+DEFAULT_NODE_TYPE=${AWS_K8S_NODE_TYPE:-'t2.medium'}
+DEFAULT_MASTER_TYPE=${AWS_K8S_MASTER_TYPE:-'m3.large'}
+DEFAULT_CLUSTER_NAME=${AWS_K8S_CLUSTER_NAME:-'dev.k8s'}
+DEFAULT_DOMAIN_NAME=${AWS_DEFAULT_ROUTE53_DOMAIN:-'lowdrag.io'}
+DEFAULT_NUM_NODES=${AWS_DEFAULT_K8S_NUM_NODES:-2}
+
+DEFAULT_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+DEFAULT_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+DEFAULT_STATE_STORE=${AWS_DEFAULT_S3_BUCKET:-'k8s.mystique.dev.state'}
+DEFAULT_REGION=${AWS_DEFAULT_REGION:-'us-east-1'}
+DEFAULT_ZONE=${AWS_ZONE:-'c'}
 
 # cli arguments
-ZONE=
 CLUSTER_NAME=
+S3_STATE_STORE=
+
 
 usage() {
   cat <<- EOF
   usage: $PROGNAME options
 
-  $PROGNAME deletes a Google Container Engine cluster.
+  $PROGNAME destroys a Kubernetes cluster on AWS using the kops cli utility.
+  (see https://github.com/kubernetes/kops) 
 
   OPTIONS:
-    -c --cluster-name        name of container engine cluster (default: $DEFAULT_CLUSTER_NAME)
-    -z --zone                gcp zone (default: $DEFAULT_ZONE)
+    -c --cluster-name        name of container engine cluster (default: ${DEFAULT_CLUSTER_NAME}.${DEFAULT_DOMAIN_NAME})
+    -s --state-store         aws s3 bucket used for cluster state storage (default: $DEFAULT_STATE_STORE)
     -h --help                show this help
 
 
   Examples:
-    $PROGNAME --cluster-name mystique-dev --zone us-central1-c
+    $PROGNAME --cluster-name dev.k8s.lowdrag.io --state-store k8s.mystique.dev.state
 EOF
 }
 
@@ -53,7 +66,7 @@ cmdline() {
     case "$arg" in
       #translate --gnu-long-options to -g (short options)
       --cluster-name)   args="${args}-c ";;
-      --zone)           args="${args}-z ";;
+      --state-store)    args="${args}-s ";;
       --help)           args="${args}-h ";;
       #pass through anything else
       *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -64,14 +77,14 @@ cmdline() {
   #Reset the positional parameters to the short options
   eval set -- "$args"
 
-  while getopts ":c:z:h" OPTION
+  while getopts ":c:s:h" OPTION
   do
      case $OPTION in
      c)
          CLUSTER_NAME=$OPTARG
          ;;
-     z)
-         ZONE=$OPTARG
+     s)
+         S3_STATE_STORE=$OPTARG
          ;;
      h)
          usage
@@ -98,39 +111,31 @@ cmdline() {
 
 valid_args()
 {
-  ZONE=${ZONE:-"$DEFAULT_ZONE"}
-  CLUSTER_NAME=${CLUSTER_NAME:-"$DEFAULT_CLUSTER_NAME"}
+  CLUSTER_NAME=${CLUSTER_NAME:-"${DEFAULT_CLUSTER_NAME}.${DEFAULT_DOMAIN_NAME}"}
+  S3_STATE_STORE=${S3_STATE_STORE:-"$DEFAULT_STATE_STORE"}
+  FMT_STATE_STORE="s3://$S3_STATE_STORE"
 
-  if ! cluster_exists "$CLUSTER_NAME"; then
-    error "the gke cluster '$CLUSTER_NAME' doesn't appear to exist."
+  if ! s3_bucket_exists "$S3_STATE_STORE"; then
+    error "the aws s3 bucket '$S3_STATE_STORE' doesn't appear to exist."
     exit 1
   fi
 
-  local zone_match=0
-  for zone in "${VALID_ZONES[@]}"; do
-    if [[ $zone = "$ZONE" ]]; then
-        zone_match=1
-        break
-    fi
-  done
-
-  if [[ $zone_match = 0 ]]; then
-    error "invalid gce zone.  Refer to the following url for list of valid zones:"
-    error "https://cloud.google.com/compute/docs/regions-zones/regions-zones"
-    echo ""
-    usage
+  if ! cluster_exists "$FMT_STATE_STORE" "$CLUSTER_NAME"; then
+    error "the kops k8s cluster '$CLUSTER_NAME' doesn't appear to exist."
     exit 1
   fi
-
-  # Get region from zone (everything to last dash)
-  REGION=$(echo $ZONE | sed "s/-[^-]*$//")
 }
 
 
 # Make sure we have all the right stuff
 prerequisites() {
-  if ! command_exists gcloud; then
-    error "gcloud does not appear to be installed. Please install and re-run this script."
+  if ! command_exists kops; then
+    error "kops does not appear to be installed. Please install and re-run this script."
+    exit 1
+  fi
+
+  if ! command_exists aws; then
+    error "aws cli does not appear to be installed. Please install and re-run this script."
     exit 1
   fi
 
@@ -140,28 +145,19 @@ prerequisites() {
   fi
 }
 
-set_compute_zone()
-{
-  gcloud config set compute/zone "$ZONE"
-  PROJECT_ID=$(gcloud config list project | sed -n 2p | cut -d " " -f 3)
-}
-
 
 cluster_down()
 {
   inf ""
-  inf "***********************************"
+  inf "****************************************"
   inf "* Deleting cluster:"
-  inf "*   Zone: $ZONE"
   inf "*   Cluster name: $CLUSTER_NAME"
-  inf "*   Project ID: $PROJECT_ID"
-  inf "***********************************"
+  inf "*   S3 bucket for state storage: $FMT_STATE_STORE"
+  inf "****************************************"
   inf ""
-
-  gcloud container clusters delete "$CLUSTER_NAME" -z "$ZONE" -q
-
-  kops delete cluster --state=s3://k8s.mystique.dev.state \ 
-    --name=dev.k8s.lowdrag.io \
+  
+  kops delete cluster --state=$FMT_STATE_STORE \
+    --name=$CLUSTER_NAME \
     --yes
 }
 
@@ -180,11 +176,9 @@ main() {
   set -euo pipefail
   readonly SELF="$(absolute_path $0)"
   cmdline $ARGS
-  valid_args
   prerequisites
-  set_compute_zone
+  valid_args
   cluster_down
-  delete_disk
 }
 
 [[ "$0" == "$BASH_SOURCE" ]] && main
