@@ -40,7 +40,7 @@ usage() {
 
 
   Examples:
-    $PROGNAME --cluster-name mystique-dev --zone us-central1-c
+    $PROGNAME --zone us-central1-c --cluster-name mystique-dev
 EOF
 }
 

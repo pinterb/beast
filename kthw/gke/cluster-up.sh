@@ -34,6 +34,7 @@ MACHINE_TYPE=
 CLUSTER_NAME=
 SSD_SIZE_GB=
 NUM_NODES=
+PASSWORD=
 
 usage() {
   cat <<- EOF
@@ -47,6 +48,7 @@ usage() {
     -m --machine-type        gcp machine type (default: $DEFAULT_MACHINE_TYPE)
     -s --ssd-size            external ssd disk size in GB (default: $DEFAULT_SSD_SIZE_GB)
     -z --zone                gcp zone (default: $DEFAULT_ZONE)
+    -p --password            cluster password
     -h --help                show this help
 
 
@@ -69,6 +71,7 @@ cmdline() {
       --cluster-name)   args="${args}-c ";;
       --num-nodes)      args="${args}-n ";;
       --machine-type)   args="${args}-m ";;
+      --password)       args="${args}-p ";;
       --ssd-size)       args="${args}-s ";;
       --zone)           args="${args}-z ";;
       --help)           args="${args}-h ";;
@@ -81,7 +84,7 @@ cmdline() {
   #Reset the positional parameters to the short options
   eval set -- "$args"
 
-  while getopts ":c:n:m:s:z:h" OPTION
+  while getopts ":c:n:m:p:s:z:h" OPTION
   do
      case $OPTION in
      c)
@@ -92,6 +95,9 @@ cmdline() {
          ;;
      m)
          MACHINE_TYPE=$OPTARG
+         ;;
+     p)
+         PASSWORD=$OPTARG
          ;;
      s)
          SSD_SIZE_GB=$OPTARG
@@ -216,6 +222,10 @@ cluster_up()
     cluster_options="$cluster_options --local-ssd-count=$NUM_LOCAL_SSD"
   fi
 
+  if [ -n "$PASSWORD" ]; then
+    cluster_options="$cluster_options --password $PASSWORD"
+  fi
+
   gcloud container clusters create "$CLUSTER_NAME" $(echo "$cluster_options")
 }
 
@@ -226,6 +236,7 @@ create_kubectl_config()
   inf ""
   inf "Creating kubectl config..."
 
+  rm "$HOME/.kube/config"
   gcloud config set container/cluster "$CLUSTER_NAME"
   gcloud container clusters get-credentials "$CLUSTER_NAME" --zone "$ZONE"
 }
@@ -256,6 +267,11 @@ dump_cluster_status() {
   component_status
   cluster_info
   get_nodes
+
+  local cluster_password=$(gcloud container clusters describe "$CLUSTER_NAME" | grep password | awk -F' ' '{print $2}')
+
+  inf ""
+  inf "Cluster Password: $cluster_password"
 }
 
 
