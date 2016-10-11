@@ -35,6 +35,7 @@ CLUSTER_NAME=
 SSD_SIZE_GB=
 NUM_NODES=
 PASSWORD=
+ENABLE_ALPHA=1
 
 usage() {
   cat <<- EOF
@@ -49,6 +50,7 @@ usage() {
     -s --ssd-size            external ssd disk size in GB (default: $DEFAULT_SSD_SIZE_GB)
     -z --zone                gcp zone (default: $DEFAULT_ZONE)
     -p --password            cluster password
+    -a --alpha               enable Kubernetes alpha features (default: disabled)
     -h --help                show this help
 
 
@@ -74,6 +76,7 @@ cmdline() {
       --password)       args="${args}-p ";;
       --ssd-size)       args="${args}-s ";;
       --zone)           args="${args}-z ";;
+      --alpha)          args="${args}-a ";;
       --help)           args="${args}-h ";;
       #pass through anything else
       *) [[ "${arg:0:1}" == "-" ]] || delim="\""
@@ -84,7 +87,7 @@ cmdline() {
   #Reset the positional parameters to the short options
   eval set -- "$args"
 
-  while getopts ":c:n:m:p:s:z:h" OPTION
+  while getopts ":c:n:m:p:s:z:ah" OPTION
   do
      case $OPTION in
      c)
@@ -104,6 +107,9 @@ cmdline() {
          ;;
      z)
          ZONE=$OPTARG
+         ;;
+     a)
+	 ENABLE_ALPHA=0
          ;;
      h)
          usage
@@ -209,6 +215,11 @@ cluster_up()
   inf "*   Num of nodes: $NUM_NODES"
   inf "*   External SSD size: $SSD_SIZE_GB"
   inf "*   Num of local (375GB) SSD disk(s): $NUM_LOCAL_SSD"
+  if [ "$ENABLE_ALPHA" -eq 0 ]; then
+    inf "*   Alpha features: enabled"
+  else 
+    inf "*   Alpha features: disabled"
+  fi
   inf "****************************************"
   inf ""
 
@@ -224,6 +235,10 @@ cluster_up()
 
   if [ -n "$PASSWORD" ]; then
     cluster_options="$cluster_options --password $PASSWORD"
+  fi
+ 
+  if [ "$ENABLE_ALPHA" -eq 0 ]; then
+    cluster_options="$cluster_options --enable-kubernetes-alpha"
   fi
 
   gcloud container clusters create "$CLUSTER_NAME" $(echo "$cluster_options")
@@ -272,6 +287,8 @@ dump_cluster_status() {
 
   inf ""
   inf "Cluster Password: $cluster_password"
+  inf ""
+  inf ""
 }
 
 
