@@ -72,3 +72,7 @@ semverParse() {
   patch="${1#$major.$minor.}"
   patch="${patch%%[-.]*}"
 }
+
+cluster_exists() {
+  kubectl cluster-info > /dev/null 2>&1
+}

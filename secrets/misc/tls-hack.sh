@@ -9,13 +9,15 @@ readonly PROGDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 readonly ARGS="$@"
 readonly TODAY=$(date +%Y%m%d%H%M%S)
 
+# find project root directory using git
+readonly PROJECT_ROOT=$(readlink -f $(git rev-parse --show-cdup))
+
 # pull in utils
-source "${PROGDIR}/utils.sh"
+[[ -f "$PROJECT_ROOT/secrets/utils.sh" ]] && source "$PROJECT_ROOT/secrets/utils.sh"
 
 # cli arguments
 SECRET_NAME=
 GEN_CERT=
-FILES
 TEMP_CERT_DIR=
 
 
@@ -28,8 +30,12 @@ usage() {
 
   OPTIONS:
     -n --name                kubernetes secret name
+
     -f --file                file to be added to secret (NOTE: you can enter multiple files)
-    -g --gen-cert            automatically generate a dummy, self-signed openssl cert(NOTE: you would typically use instead of -f option)
+
+    -g --gen-dummy-cert      automatically generate a dummy, self-signed openssl cert
+                             (NOTE: you would typically use instead of -f option)
+
     -h --help                show this help
 
 
