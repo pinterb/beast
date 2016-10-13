@@ -33,7 +33,7 @@ usage() {
   Kubernetes as tls secrets.
 
   OPTIONS:
-    -n --name                kubernetes secret name
+    -n --name                kubernetes secret name (default: the specified domain)
     -d --domain              domain name that certificate will be created for
     -c --dns                 DNS provider used for ACME DNS challenge
     -e --email               email address of user
@@ -61,7 +61,9 @@ usage() {
 
 
   Examples:
-    $PROGNAME --name cdw-lowdrag-cert --email bpinter@mailbag.com --domain cdw.lowdrag.io --dns dnsimple
+    $PROGNAME --email bpinter@mailbag.com --domain cdw.lowdrag.io --dns route53
+
+    $PROGNAME --email brad.pinter@gmail.com --name cdw.cloudutils.io --domain cdw.cloudutils.io --dns dnsimple
 EOF
 }
 
@@ -138,19 +140,19 @@ valid_args()
   inf "validating arguments..."
   inf ""
 
-  if [ -z "$SECRET_NAME" ]; then
-    error "A kubernetes secret name is required."
-    echo ""
-    usage
-    exit 1
-  fi
-
   if [ -z "$DOMAIN_NAME" ]; then
     error "A domain name is required."
     echo ""
     usage
     exit 1
   fi
+
+  if [ -z "$SECRET_NAME" ]; then
+    SECRET_NAME="$DOMAIN_NAME"
+    warn "A kubernetes secret name was not provided.  Will use \"$SECRET_NAME\" as the secret name."
+    echo ""
+  fi
+
 
   if [ -z "$DNS_PROVIDER_NAME" ]; then
     error "A dns provider name is required."
