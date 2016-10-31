@@ -2,6 +2,13 @@
 
 # vim: filetype=sh:tabstop=2:shiftwidth=2:expandtab
 
+########################################################################################
+# Based on the following examples:
+# https://coreos.com/os/docs/latest/generate-self-signed-certificates.html
+# http://technedigitale.com/archives/639
+# https://github.com/kelseyhightower/grpc-hello-service/tree/master/Tutorials/kubernetes
+########################################################################################
+
 readonly PROGNAME=$(basename $0)
 readonly PROGDIR="$( cd "$(dirname "$0")" ; pwd -P )"
 
@@ -102,7 +109,7 @@ verify_root_ca() {
   echo ""
   inf "Verifying the Root CA"
   cd "$CERTS_OUTPUT_DIR" && \
-    openssl x509 -in "$CA_ROOT_CERT_FILE" -text -noout || exit 1
+    openssl x509 -in "$CA_ROOT_CERT_FILE" -text -noout > /dev/null || exit 1
 }
 
 
@@ -135,7 +142,7 @@ verify_intermediate_ca() {
   echo ""
   inf "Verifying the Intermediate CA"
   cd "$CERTS_OUTPUT_DIR" && \
-    openssl x509 -in "$CA_INTER_CERT_FILE" -text -noout || exit 1
+    openssl x509 -in "$CA_INTER_CERT_FILE" -text -noout > /dev/null || exit 1
 }
 
 
@@ -161,7 +168,7 @@ verify_server_cert() {
   echo ""
   inf "Verifying the server certificate"
   cd "$CERTS_OUTPUT_DIR" && \
-    openssl x509 -in "$SERVER_CERT_FILE" -text -noout
+    openssl x509 -in "$SERVER_CERT_FILE" -text -noout > /dev/null || exit 1
 }
 
 
@@ -187,7 +194,7 @@ verify_client_cert() {
   echo ""
   inf "Verifying the client certificate"
   cd "$CERTS_OUTPUT_DIR" && \
-    openssl x509 -in "$CLIENT_CERT_FILE" -text -noout
+    openssl x509 -in "$CLIENT_CERT_FILE" -text -noout > /dev/null || exit 1
 }
 
 
