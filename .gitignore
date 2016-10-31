@@ -25,3 +25,5 @@ site/
 autogen/spec
 autogen/src
 autogen/proto
+*.pem
+*.csr

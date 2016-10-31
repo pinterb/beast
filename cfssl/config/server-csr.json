@@ -1,0 +1,26 @@
+{
+    "CN": "admin",
+    "hosts": [
+      "localhost",
+      "admin.local",
+      "feh.cdw.com",
+      "meh.cdw.com",
+      "foo.cdw.com",
+      "bar.cdw.com"
+    ],
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "WI",
+            "ST": "Madison",
+            "O": "CDW",
+            "OU": "S3",
+            "OU": "Services Engineering"
+        }
+    ]
+}
+

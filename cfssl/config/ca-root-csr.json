@@ -1,0 +1,21 @@
+{
+    "CN": "MY root CA",
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "WI",
+            "ST": "Madison",
+            "O": "CDW",
+            "OU": "S3",
+            "OU": "Services Engineering"
+        }
+    ],
+    "ca": {
+      "expiry": "262800h"
+    }
+}
+

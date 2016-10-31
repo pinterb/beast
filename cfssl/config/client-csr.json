@@ -1,0 +1,19 @@
+{
+    "CN": "client",
+    "hosts": [""],
+    "key": {
+        "algo": "rsa",
+        "size": 4096
+    },
+    "names": [
+        {
+            "C": "US",
+            "L": "WI",
+            "ST": "Madison",
+            "O": "CDW",
+            "OU": "S3",
+            "OU": "Services Engineering"
+        }
+    ]
+}
+
