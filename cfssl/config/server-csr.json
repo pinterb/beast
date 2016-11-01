@@ -1,6 +1,7 @@
 {
     "CN": "admin",
     "hosts": [
+      "127.0.0.1",
       "localhost",
       "admin.local",
       "feh.cdw.com",

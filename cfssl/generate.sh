@@ -97,7 +97,8 @@ gen_root_ca() {
     inf "Creating the Root CA"
     cd "$CERTS_OUTPUT_DIR" && \
       cfssl gencert \
-      -initca "$CA_ROOT_CSR_CONFIG_FILE" | cfssljson -bare root_ca
+      -initca "$CA_ROOT_CSR_CONFIG_FILE" | cfssljson -bare root_ca && \
+      chmod 0644 "$CA_ROOT_KEY_FILE"
   else
     echo ""
     warn "The root ca already exists.  Is that okay??"
@@ -130,7 +131,8 @@ gen_intermediate_ca() {
       -ca-key root_ca-key.pem \
       -config "$CA_CONFIG_FILE" \
       -profile root-to-intermediate-ca \
-      intermediate_ca.csr | cfssljson -bare intermediate_ca
+      intermediate_ca.csr | cfssljson -bare intermediate_ca && \
+      chmod 0644 "$CA_INTER_KEY_FILE"
   else
     echo ""
     warn "The intermediate ca already exists.  Is that okay??"
@@ -156,7 +158,8 @@ gen_server_cert() {
       -ca-key intermediate_ca-key.pem \
       -config "$CA_CONFIG_FILE" \
       -profile server \
-      "$SERVER_CSR_CONFIG_FILE" | cfssljson -bare
+      "$SERVER_CSR_CONFIG_FILE" | cfssljson -bare && \
+      chmod 0644 "$SERVER_KEY_FILE"
   else
     echo ""
     warn "The server certificate already exists.  Is that okay??"
@@ -182,7 +185,8 @@ gen_client_cert() {
       -ca-key intermediate_ca-key.pem \
       -config "$CA_CONFIG_FILE" \
       -profile client \
-      "$CLIENT_CSR_CONFIG_FILE" | cfssljson -bare client
+      "$CLIENT_CSR_CONFIG_FILE" | cfssljson -bare client && \
+      chmod 0644 "$CLIENT_KEY_FILE"
   else
     echo ""
     warn "The client certificate already exists.  Is that okay??"

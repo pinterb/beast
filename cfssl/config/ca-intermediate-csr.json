@@ -1,5 +1,10 @@
 {
     "CN": "MY intermediate CA",
+    "hosts": [
+        "127.0.0.1",
+        "feh.cdw.com",
+        "cdw.com"
+    ],
     "key": {
         "algo": "rsa",
         "size": 4096
