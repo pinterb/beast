@@ -29,7 +29,7 @@ usage() {
   cat <<- EOF
   usage: $PROGNAME options
 
-  $PROGNAME is a thin wrapper around the lego cli for Let's Encrpt. Lego created certs are then passed into 
+  $PROGNAME is a thin wrapper around the lego cli for Let's Encrpt. Lego created certs are then passed into
   Kubernetes as tls secrets.
 
   OPTIONS:
@@ -190,7 +190,7 @@ prerequisites() {
   inf ""
   inf "verifying prerequisites..."
   inf ""
-  
+
   if ! command_exists kubectl; then
     error "kubectl does not appear to be installed. Please install and re-run this script."
     exit 1
@@ -234,7 +234,7 @@ create_lego_cert()
   local expected_cert_file="$LEGO_OUTPUT_DIR/certificates/$DOMAIN_NAME.crt"
   if [ ! -f "$expected_cert_file" ]; then
     echo ""
-    error "Missing expected file: $expected_cert_file" 
+    error "Missing expected file: $expected_cert_file"
     echo ""
     exit 1
   fi
@@ -242,7 +242,7 @@ create_lego_cert()
   local expected_key_file="$LEGO_OUTPUT_DIR/certificates/$DOMAIN_NAME.key"
   if [ ! -f "$expected_key_file" ]; then
     echo ""
-    error "Missing expected file: $expected_key_file" 
+    error "Missing expected file: $expected_key_file"
     echo ""
     exit 1
   fi
@@ -250,7 +250,7 @@ create_lego_cert()
   local expected_json_file="$LEGO_OUTPUT_DIR/certificates/$DOMAIN_NAME.json"
   if [ ! -f "$expected_json_file" ]; then
     echo ""
-    error "Missing expected file: $expected_json_file" 
+    error "Missing expected file: $expected_json_file"
     echo ""
     exit 1
   fi
@@ -270,7 +270,7 @@ create_kube_secret()
   kubectl label secrets $SECRET_NAME domain=$DOMAIN_NAME
   echo ""
   echo ""
-  kubectl describe secrets "$SECRET_NAME" 
+  kubectl describe secrets "$SECRET_NAME"
 }
 
 

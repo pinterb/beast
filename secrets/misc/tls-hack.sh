@@ -185,9 +185,9 @@ create_kube_secret()
   for val in "${FILES[@]}"; do
     cmd_opts="$cmd_opts --from-file=$val"
   done
-  
+
   kubectl create $cmd_opts
-  kubectl describe secrets "$SECRET_NAME" 
+  kubectl describe secrets "$SECRET_NAME"
 }
 
 

@@ -45,7 +45,7 @@ cmdline() {
     exit
   fi
 
-  for arg in "$@"; do 
+  for arg in "$@"; do
     case $arg in
       -h|-\?|--help)   # Call a "usage" function to display a synopsis, then exit.
         usage
@@ -103,7 +103,7 @@ prerequisites() {
   inf ""
   inf "verifying prerequisites..."
   inf ""
-  
+
   if ! command_exists kubectl; then
     error "kubectl does not appear to be installed. Please install and re-run this script."
     exit 1
@@ -119,7 +119,7 @@ prerequisites() {
 make_temp_dir()
 {
   TEMP_SECRET_DIR="/tmp/$$"
- 
+
   if [ ! -d "$TEMP_SECRET_DIR" ]; then
     echo ""
     inf "Creating temporary directory..."
@@ -147,12 +147,12 @@ use_dnsimple()
     error "Missing DNSimple environment variable: 'DNSIMPLE_EMAIL'"
     exit 1
   fi
-  
+
   if [ -z "$DNSIMPLE_API_KEY" ]; then
     error "Missing DNSimple environment variable: 'DNSIMPLE_API_KEY'"
     exit 1
   fi
-  
+
   make_temp_dir
   #echo "$DNSIMPLE_EMAIL" > "$TEMP_SECRET_DIR/dnsimple_email.txt"
   #echo "$DNSIMPLE_API_KEY" > "$TEMP_SECRET_DIR/dnsimple_api_key.txt"
@@ -184,9 +184,9 @@ create_kube_secret()
   for val in "${FILES[@]}"; do
     cmd_opts="$cmd_opts --from-file=$val"
   done
-  
+
   kubectl create $cmd_opts
-  kubectl describe secrets "$SECRET_NAME" 
+  kubectl describe secrets "$SECRET_NAME"
 }
 
 

@@ -27,3 +27,4 @@ autogen/src
 autogen/proto
 *.pem
 *.csr
+*.crt

@@ -9,6 +9,7 @@
                 "expiry": "262800h",
                 "usages": [
                     "signing",
+                    "key encipherment",
                     "digital signature",
                     "cert sign",
                     "crl sign"

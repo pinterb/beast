@@ -225,9 +225,9 @@ cluster_up()
 
   # options for how cluster is created
   local cluster_options
-  cluster_options="--machine-type $MACHINE_TYPE --num-nodes $NUM_NODES --scopes storage-rw"
-
-  cluster_options="$cluster_options,service-control,logging-write,datastore,sql,sql-admin,bigquery"
+  cluster_options="--machine-type $MACHINE_TYPE --num-nodes $NUM_NODES"
+#
+#  cluster_options="$cluster_options,service-control,logging-write,datastore,sql,sql-admin,bigquery,projecthosting,monitoring-write"
 
   if [ "$NUM_LOCAL_SSD" -gt 0 ]; then
     cluster_options="$cluster_options --local-ssd-count=$NUM_LOCAL_SSD"
@@ -236,12 +236,18 @@ cluster_up()
   if [ -n "$PASSWORD" ]; then
     cluster_options="$cluster_options --password $PASSWORD"
   fi
- 
+
   if [ "$ENABLE_ALPHA" -eq 0 ]; then
     cluster_options="$cluster_options --enable-kubernetes-alpha"
   fi
 
-  gcloud container clusters create "$CLUSTER_NAME" $(echo "$cluster_options")
+  # oauth scopes:
+  # https://cloud.google.com/sdk/gcloud/reference/container/clusters/create#--scopes
+  local scopes="storage-rw,service-control,logging-write,datastore"
+  scopes="$scopes,sql,sql-admin,bigquery,monitoring-write"
+
+  gcloud container clusters create "$CLUSTER_NAME" $(echo "$cluster_options") \
+    --scopes "$scopes"
 }
 
 
