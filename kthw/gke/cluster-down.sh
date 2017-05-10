@@ -161,7 +161,17 @@ cluster_down()
   inf "***********************************"
   inf ""
 
+  inf ""
+  inf "Destroying GKE cluster..."
   gcloud container clusters delete "$CLUSTER_NAME" -z "$ZONE" -q
+
+  inf ""
+  inf "Destroying GCP subnet..."
+  gcloud -q compute networks subnets delete kubernetes
+
+  inf ""
+  inf "Destroying GCP network..."
+  gcloud -q compute networks delete "$CLUSTER_NAME"
 }
 
 

@@ -155,6 +155,13 @@ valid_args()
     exit 1
   fi
 
+  if [ "$NUM_NODES" -eq "0" ]; then
+    error "number of nodes must be greater than zero"
+    echo ""
+    usage
+    exit 1
+  fi
+
   if ! [[ $SSD_SIZE_GB =~ $number_re ]] ; then
     error "number of nodes must be a numeric value"
     echo ""
@@ -209,7 +216,9 @@ cluster_up()
   inf "****************************************"
   inf "* Creating cluster:"
   inf "*   Project ID: $PROJECT_ID"
+  inf "*   Region: $REGION"
   inf "*   Zone: $ZONE"
+  inf "*   Network name: $CLUSTER_NAME"
   inf "*   Cluster name: $CLUSTER_NAME"
   inf "*   Machine type: $MACHINE_TYPE"
   inf "*   Num of nodes: $NUM_NODES"
@@ -217,15 +226,26 @@ cluster_up()
   inf "*   Num of local (375GB) SSD disk(s): $NUM_LOCAL_SSD"
   if [ "$ENABLE_ALPHA" -eq 0 ]; then
     inf "*   Alpha features: enabled"
-  else 
+  else
     inf "*   Alpha features: disabled"
   fi
   inf "****************************************"
   inf ""
 
+  inf ""
+  inf "Provisioning GCP network..."
+  gcloud -q compute networks create "$CLUSTER_NAME" --mode custom
+
+  inf ""
+  inf "Provisioning GCP subnet..."
+  gcloud -q compute networks subnets create kubernetes \
+    --network "$CLUSTER_NAME" \
+    --range 10.240.0.0/24 \
+    --region "$REGION"
+
   # options for how cluster is created
   local cluster_options
-  cluster_options="--machine-type $MACHINE_TYPE --num-nodes $NUM_NODES"
+  cluster_options="--machine-type $MACHINE_TYPE --num-nodes $NUM_NODES --network $CLUSTER_NAME --subnetwork kubernetes"
 #
 #  cluster_options="$cluster_options,service-control,logging-write,datastore,sql,sql-admin,bigquery,projecthosting,monitoring-write"
 
@@ -246,6 +266,8 @@ cluster_up()
   local scopes="storage-rw,service-control,logging-write,datastore"
   scopes="$scopes,sql,sql-admin,bigquery,monitoring-write"
 
+  inf ""
+  inf "Provisioning Google Container Engine (GKE) cluster..."
   gcloud container clusters create "$CLUSTER_NAME" $(echo "$cluster_options") \
     --scopes "$scopes"
 }
@@ -296,7 +318,6 @@ dump_cluster_status() {
   inf ""
   inf ""
 }
-
 
 main() {
   # Be unforgiving about errors
