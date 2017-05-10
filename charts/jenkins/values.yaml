@@ -24,8 +24,8 @@ Master:
 Agent:
   Image: pinterb/jenkins-jnlp-slave
   ImageTag: 2.62
-  Cpu: "200m"
-  Memory: "512Mi"
+  Cpu: "350m"
+  Memory: "768Mi"
 
 Persistence:
   Enabled: true

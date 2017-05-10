@@ -10,9 +10,13 @@ readonly TODAY=$(date +%Y%m%d%H%M%S)
 # find project root directory using git
 readonly PROJECT_ROOT=$(readlink -f $(git rev-parse --show-cdup))
 
+# Name of the Kubernetes cluster
 JENKINS_CLUSTER_NAME=${JENKINS_CLUSTER_NAME:-'jenkins'}
+# Number of nodes in the cluster
 JENKINS_NUM_NODES=${JENKINS_NUM_NODES:-'5'}
+# The cluster namespace jenkins will run in
 JENKINS_NAMESPACE=${JENKINS_NAMESPACE:-'jenkins'}
+# What to name our test certs
 JENKINS_CERTS_SECRET=${JENKINS_CERTS_SECRET:-'testcerts'}
 
 # pull in utils
